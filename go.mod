@@ -1,4 +1,4 @@
-module main
+module github.com/vihangvk/gke-service-sync
 
 go 1.13
 

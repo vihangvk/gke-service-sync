@@ -11,7 +11,7 @@ func TestCommon(t *testing.T) {
 
 	t.Run("Test config", func(t *testing.T) {
 		defaultConfig = nil
-		err := os.Symlink("test-data/valid-config.yaml", configPath)
+		err := os.Link("test-data/valid-config.yaml", configPath)
 		assert.NoError(t, err)
 		readConfig()
 		assert.Equal(t, defaultConfig.RunMode, runModeSync)
