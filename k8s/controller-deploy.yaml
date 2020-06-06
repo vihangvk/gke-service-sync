@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-sync
+    mode: controller
+  name: service-sync-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-sync
+      mode: controller
+  template:
+    metadata:
+      labels:
+        app: service-sync
+        mode: controller
+    spec:
+      serviceAccountName: service-sync
+      containers:
+      - image: eu.gcr.io/travix-com/gke-svc-sync
+        name: controller
+        resources: {}
+        volumeMounts:
+          - name: config
+            mountPath: /defaults
+      volumes:
+        - name: config
+          configMap:
+              name: service-sync-controller-config

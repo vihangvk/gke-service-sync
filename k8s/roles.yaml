@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-sync
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: service-sync
+rules:
+- apiGroups:
+  - "*"
+  resources:
+    - "services"
+    - "endpoints"
+  verbs:
+    - "get"
+    - "watch"
+    - "list"
+    - "create"
+    - "update"
+    - "patch"
+    - "delete"
+- apiGroups:
+  - "*"
+  resources:
+    - "namespaces"
+  verbs:
+    - "get"
+    - "list"
+    - "create"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: service-sync
+subjects:
+- kind: ServiceAccount
+  name: service-sync
+roleRef:
+  kind: ClusterRole
+  name: service-sync
+  apiGroup: rbac.authorization.k8s.io

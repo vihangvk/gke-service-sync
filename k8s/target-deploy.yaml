@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-sync
+    mode: target
+  name: service-sync-target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-sync
+      mode: target
+  template:
+    metadata:
+      labels:
+        app: service-sync
+        mode: target
+    spec:
+      serviceAccountName: service-sync
+      containers:
+      - image: eu.gcr.io/travix-com/gke-svc-sync
+        name: target
+        resources: {}
+        env:
+          - name: DEBUG
+            value: ""
+          - name: MODE
+            value: target
+        ports:
+          - name: app
+            containerPort: 8080

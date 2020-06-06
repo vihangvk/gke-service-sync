@@ -1,0 +1,8 @@
+runMode: sync
+logLevel: debug
+peers:
+-  example.com
+syncNamespaces:
+  - default
+  - apps
+skipServiceRegex: "kubernetes|nginx-ingress"
