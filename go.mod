@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fsnotify/fsnotify v1.4.7
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/golang/protobuf v1.4.0 // indirect
 	github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/stretchr/testify v1.4.0
