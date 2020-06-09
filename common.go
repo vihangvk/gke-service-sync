@@ -68,7 +68,7 @@ func loadConfig() {
 	// watch for changes in config
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to create new watcher for config changes: %v", err)
 	}
 	defer watcher.Close()
 	go func() {
@@ -86,6 +86,8 @@ func loadConfig() {
 				}
 			case err := <-watcher.Errors:
 				debug("config watcher error:", err)
+				watcher.Remove(configPath)
+				watcher.Add(configPath)
 			}
 		}
 	}()
