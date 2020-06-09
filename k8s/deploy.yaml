@@ -6,6 +6,7 @@ metadata:
     app: service-sync
     mode: controller
   name: service-sync-controller
+  namespace: service-sync
 spec:
   replicas: 1
   selector:
@@ -20,7 +21,7 @@ spec:
     spec:
       serviceAccountName: service-sync
       containers:
-      - image: eu.gcr.io/travix-com/gke-svc-sync
+      - image: vihangvk/gke-service-sync
         name: controller
         resources: {}
         volumeMounts:

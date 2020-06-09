@@ -74,18 +74,17 @@ func loadConfig() {
 	go func() {
 		for {
 			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
+			case event := <-watcher.Events:
 				debug("event:", event)
+				if event.Op == fsnotify.Remove {
+					watcher.Remove(event.Name)
+					watcher.Add(configPath)
+					readConfig()
+				}
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					readConfig()
 				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
+			case err := <-watcher.Errors:
 				debug("config watcher error:", err)
 			}
 		}
