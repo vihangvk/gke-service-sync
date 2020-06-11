@@ -3,8 +3,10 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"regexp"
 	"sort"
+	"sync"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fsnotify/fsnotify"
@@ -66,35 +68,48 @@ func loadConfig() {
 	readConfig()
 
 	// watch for changes in config
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatalf("failed to create new watcher for config changes: %v", err)
-	}
-	defer watcher.Close()
 	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				debug("event:", event)
-				if event.Op == fsnotify.Remove {
-					watcher.Remove(event.Name)
-					watcher.Add(configPath)
-					readConfig()
-				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					readConfig()
-				}
-			case err := <-watcher.Errors:
-				debug("config watcher error:", err)
-				watcher.Remove(configPath)
-				watcher.Add(configPath)
-			}
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			log.Fatalf("failed to create new watcher for config changes: %v", err)
 		}
+		defer watcher.Close()
+		filePath, _ := filepath.EvalSymlinks(configPath)
+		wg := sync.WaitGroup{}
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case event, ok := <-watcher.Events:
+					if !ok {
+						debug("config change event closed")
+						return
+					}
+					debug("event op: '%s', name: '%s", event.Op.String(), event.Name)
+					if event.Op == fsnotify.Remove {
+						watcher.Remove(event.Name)
+						filePath, _ = filepath.EvalSymlinks(configPath)
+						watcher.Add(filePath)
+						readConfig()
+					}
+					if event.Op&fsnotify.Write == fsnotify.Write {
+						readConfig()
+					}
+				case err, ok := <-watcher.Errors:
+					if ok {
+						log.Printf("config watcher error: %v", err)
+						return
+					}
+				}
+			}
+		}()
+		err = watcher.Add(filePath)
+		if err != nil {
+			log.Fatalf("failed to add watcher for config changes: %v", err)
+		}
+		wg.Add(1)
+		wg.Wait()
 	}()
-	err = watcher.Add(configPath)
-	if err != nil {
-		log.Fatalf("failed to add watcher for config changes: %v", err)
-	}
 }
 
 func debug(msg string, args ...interface{}) {
