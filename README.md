@@ -1,4 +1,4 @@
-# GKE [multi-cluster] Services Sync
+# GKE [multi-cluster] Service Sync
 
 ![CI](https://github.com/vihangvk/gke-service-sync/workflows/CI/badge.svg)
 
