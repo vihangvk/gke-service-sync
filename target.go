@@ -109,14 +109,6 @@ func targetHandler(w http.ResponseWriter, req *http.Request) {
 			a, ok := svc.Annotations[syncedResourceAnnotation]
 			if ok && a == syncedResourceAnnotationVal {
 				// update endpoints
-				// _, err = clientset.CoreV1().Services(se.Service.Namespace).Update(se.Service)
-				// if err != nil {
-				// 	msg := fmt.Sprintf("failed to update service '%s' (ns:%s) : %v", se.Service.Name, se.Service.Namespace, err)
-				// 	log.Printf(msg)
-				// 	w.WriteHeader(http.StatusInternalServerError)
-				// 	io.WriteString(w, msg)
-				// 	return
-				// }
 				ep, err := clientset.CoreV1().Endpoints(se.Endpoints.Namespace).Get(se.Endpoints.Name, metav1.GetOptions{})
 				if err != nil {
 					msg := fmt.Sprintf("failed to get endpoints '%s' (ns:%s) : %v", se.Service.Name, se.Service.Namespace, err)
@@ -149,6 +141,7 @@ func targetHandler(w http.ResponseWriter, req *http.Request) {
 func startTargetListener() {
 	http.HandleFunc(targetPath, targetHandler)
 	webServer = &http.Server{Addr: listenAddress}
+	debug("starting to listen on '%s'", listenAddress)
 	err := webServer.ListenAndServe()
 	if err != http.ErrServerClosed {
 		log.Printf("error starting web server or closing listener - %v\n", err)

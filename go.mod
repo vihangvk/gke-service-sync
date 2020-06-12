@@ -1,12 +1,13 @@
 module github.com/vihangvk/gke-service-sync
 
-go 1.13
+go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/golang/protobuf v1.4.0 // indirect
 	github.com/googleapis/gnostic v0.4.0 // indirect
+	github.com/jpillora/backoff v1.0.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79 // indirect
 	golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0 // indirect

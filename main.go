@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -29,13 +32,20 @@ func main() {
 	log.Printf("Starting gke-service-sync in '%s' mode.", defaultConfig.RunMode)
 	switch defaultConfig.RunMode {
 	case runModeController:
-		syncServicesController()
+		go syncServicesController()
 	case runModeTarget:
-		syncServicesTarget()
+		go syncServicesTarget()
 	default:
-		syncServicesController()
-		syncServicesTarget()
+		go syncServicesController()
+		go syncServicesTarget()
 	}
+
+	// handle shutdown
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
+
+	// wait for shutdown
+	<-shutdown
 
 	log.Printf("Exit")
 }

@@ -11,10 +11,16 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
+	"time"
 
+	"github.com/jpillora/backoff"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
+)
+
+const (
+	maxRetries = 10
 )
 
 type serviceEndpoints struct {
@@ -76,7 +82,7 @@ func watchServicesAndEndpoints(svcChan chan *serviceEndpoints) {
 			debug("create endpoints watcher")
 			epslices, err := clientset.DiscoveryV1beta1().EndpointSlices("").List(metav1.ListOptions{})
 			if epslices != nil && len(epslices.Items) > 0 {
-				log.Fatalf("Detected Endpoint slices but this tool doesn't support it.")
+				log.Fatalf("FATAL: Detected Endpoint slices but this tool doesn't support it.")
 			}
 			epWatcher, err := clientset.CoreV1().Endpoints("").Watch(metav1.ListOptions{})
 			if err != nil {
@@ -171,18 +177,35 @@ func syncServicesController() {
 			if err != nil {
 				log.Fatalf("failed to marshal service and endpoints into JSON: %v", err)
 			}
-			debug(string(js))
-			for _, peer := range defaultConfig.Peers {
-				url := strings.TrimSuffix(peer, "/") + targetPath
-				debug("sending services to '%s'", peer)
-				go func() {
-					resp, err := http.Post(url, "", bytes.NewBuffer(js))
-					if err != nil {
-						log.Printf("failed to post to target '%s': %v", url, err)
+			for pi := range defaultConfig.Peers {
+				go func(index int) {
+					b := backoff.Backoff{
+						Min:    1 * time.Second,
+						Max:    60 * time.Second,
+						Factor: 2,
+						Jitter: true,
 					}
-					msg, _ := ioutil.ReadAll(resp.Body)
-					debug("(url: %s) response status: '%s', message: %s", url, resp.Status, msg)
-				}()
+					i := 0
+					for i <= maxRetries {
+						i = i + 1
+						if index >= len(defaultConfig.Peers) {
+							log.Printf("Warrning: Peer index '%d' is out of bounds. ('%d' peers detected.) ", index, len(defaultConfig.Peers))
+							return
+						}
+						url := strings.TrimSuffix(defaultConfig.Peers[index], "/") + targetPath
+						debug("sending services to '%s' (index: %d)", defaultConfig.Peers[index], index)
+						debug(string(js))
+						resp, err := http.Post(url, "", bytes.NewBuffer(js))
+						if err != nil {
+							log.Printf("failed to post to target '%s': %v", url, err)
+							time.Sleep(b.Duration())
+						} else {
+							msg, _ := ioutil.ReadAll(resp.Body)
+							debug("(url: %s) response status: '%s', message: '%s'", url, resp.Status, string(msg))
+							return
+						}
+					}
+				}(pi)
 			}
 		}
 	}
