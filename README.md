@@ -8,7 +8,7 @@ GKE supports VPC-Native Kubernetes clusters which use [Alias-IPs](https://cloud.
 
 This controller helps sync Kubernetes services across multiple GKE clusters to make it available in different clusters while being accessible via service name. Actual service runs only in original (or source) cluster and at destination cluster (or clusters) the service and endpoints are synced.
 
-This is useful when there is no service mesh used and you need to migrate multiple workloads from one cluster to another but there is no defined order of deployment to make sure all dependant workloads are migrated first.
+This is useful when there is no service mesh used and there are services which are being used just by service name and not using an Ingress or a LoadBalancer and you need to migrate multiple workloads from one cluster to another and there is no defined order of deployment to make sure all dependant workloads are migrated first.
 
 ## Usage
 
