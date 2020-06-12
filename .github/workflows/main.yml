@@ -28,6 +28,7 @@ jobs:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
         repository: vihangvk/gke-service-sync
-        tags: latest
+        tag_with_ref: true
+        add_git_labels: true
 
 
